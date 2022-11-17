@@ -1,0 +1,126 @@
+<html>
+    <head>
+        <title>level</title>
+        <style>
+*{
+    font-size: 50px;
+    color: snow;
+}
+:root{
+    --R:rgb(241, 82, 70);
+    --G:rgb(35, 233, 35);
+    --Y:rgb(252, 215, 54);
+}
+body{
+    background-color: #020202;
+}
+.container-flex{
+    position: relative;
+    top: 25%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    justify-items: flex-end;
+}
+a{
+    text-decoration: none;
+}
+.blok{
+    border: 3px rgb(243, 243, 243) solid;
+    overflow: hidden;
+    height: 1.8rem;
+    width: 220px;
+    margin: 0 20px 0;
+    padding: 5px 10px;
+    background: rgba(0, 0, 0, 0);
+    transition: all 0.5s ease;
+}
+.blok:nth-child(1):hover{
+    height: 300px;
+    border-color:  var(--G);
+}
+.blok:nth-child(2):hover{
+    height: 300px;
+    border-color:  var(--Y);
+}
+.blok:nth-child(3):hover{
+    height: 300px;
+    border-color:  var(--R);
+}
+.blok:nth-child(1):hover>hr{
+    border-color: var(--G);
+}
+.blok:nth-child(2):hover>hr{
+    border-color: var(--Y);
+}
+.blok:nth-child(3):hover>hr{
+    border-color: var(--R);
+}
+.text{ 
+    font-size: 20px;
+}
+#exit{
+    text-align: center;
+    font-size: xx-large;
+    width: 3rem;
+    border: 3px snow solid; 
+    background-color: #020202;
+}
+#keluar{
+    font-size: 30px;
+}
+        </style>
+    </head>
+    <body>
+        <button id="exit" onclick="EXIT()">EXIT</button>
+        <div class="container-flex">
+            
+                <div class="blok">level 1 <hr>
+                    <p class="text">
+                        - kecepatan serangan masih sedang <br> 
+                        - ukuran serangan masih kecil <br> sehingga mudah dihindari <br>
+                        - terdapat boost untuk membuat <br> karaktermu jadi kebal
+                    </p>
+                
+                </div>
+            
+                <div class="blok">level 2 <hr> 
+                    <p class="text">
+                    - kecepatan serangannya bertambah <br>
+                    - ukuran serangannya mulai membesar <br> sehingga sulit dihindari <br>
+                    - jarang terdapat boost            
+                    </p>
+                </div>
+            
+                <div class="blok">level 3 <hr> 
+                    <p class="text">
+                    - kecepatannya 2 kali lebih cepat <br> dibandinggkan level 2 <br>
+                    - ukuran serangannya membesar <br> sehingga sulit dihindari <br>
+                    - tidak ada boost
+                    </p>
+                </div>
+        </div>
+<script>
+level = document.querySelectorAll('div div');
+function EXIT(){
+    document.location.href = 'AVOID.html';
+}
+for (let i = 0; i < level.length; i++) {
+    level[i].style.cursor= 'pointer';
+    level[i].addEventListener('click',()=>{
+        switch (i) {
+            case 0:
+                document.location.href = 'level1.html';
+                break;
+            case 1:
+                document.location.href = 'level2.html';
+                break;
+            default:
+                document.location.href = 'level3.html';
+                break;
+        }
+    })
+}
+</script>    
+</body>
+</html>

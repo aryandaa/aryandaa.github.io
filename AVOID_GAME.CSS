@@ -1,0 +1,65 @@
+*{
+    color:snow;
+    font-family: 'Helvetica Neue';
+}
+
+body,
+html {
+    height: 100%;
+    text-align: center;
+    background-color: #020202;
+}
+
+body {
+    overflow: hidden;
+    color: #333333;
+}
+.ui {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 30px;
+    color: #fcfcfc;
+    background-color: rgba(0, 0, 0, 0);
+    text-align: left;
+    padding: 8px;
+    position: absolute;
+    top: 1%;
+    margin: 0;
+}
+#message{
+    position: relative;
+}
+#message p {
+    font-size: 35px;
+}
+
+#status {
+    width: 97%;
+    border: 2px #fcfcfc solid;
+    height: 35px;
+    padding: 8px;
+    display: none;
+}
+#status span {
+    color: dodgerblue;
+    font-weight: bold;
+    margin-right: 5px;
+}
+#title {
+    color: #fd0000;
+}
+
+button {
+    font-size: 18px;
+    color: #fcfcfc;
+    background-color: var(--B);
+    border: 3px rgb(243, 243,243) solid; 
+    border-radius: 12px;
+    text-align: center;
+    width: 10rem;
+}
+
+#exit {
+    position: relative;
+    top: 33.5%;
+    background: red;
+}

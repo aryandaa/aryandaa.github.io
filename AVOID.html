@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>layout</title>
+    <style>
+        *{
+            font-family: 'Helvetica Neue';
+            font-size: 100px;
+            color: snow;
+        }
+        @keyframes pindah{
+            0%{transform: translate(2.4rem,1.5em);}
+            100%{transform: translate(0,0);}
+        }
+        body{
+            background-image: url(layout2.jpg);
+            background-size: cover;
+            text-align: center;
+        }
+        #all{
+            margin-top: 18%;
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap-reverse;
+            align-content: center;
+            justify-content: center;
+            align-items: stretch;
+            justify-items: center;
+        }
+        button{
+            border: 2px #fcfcfc solid;
+            margin-top: 25px;
+            padding: 1px 15px;
+            border-radius: 15px;
+            background: rgba(0, 0, 0, 0);
+            width: 5em;
+            transition: all 3s ease;
+        }
+        .active{
+            width: 13em;
+            animation: pindah 1s ease-in;
+            transform: translate(0,0);
+        }
+        .reverse-active{
+            width: 5em;
+            animation: pindah 1s ease-in reverse;
+            transform: translate(0,0);
+        }
+        .none{
+            display: none;
+        }
+        #paragraf{
+            font-size: large;
+            transition: all 1s ease;
+        }
+        #play{
+            width: 10em;
+            font-size: 100px;
+        }    
+        #play:active,#about:active,#setting:active{
+            color:#d3d3d3;
+            background: #131313;
+        }
+    </style>
+</head>
+<body>
+    <div id="all">
+        <p id="paragraf" class="none">bumi diserang oleh alien menggunakan meteorit yang berasal dari planet alien tersebut, akibatnya, semua manusia mati karena serangan itu, kecuali 2 orang, 1 laki-laki dan 1 perempuan.
+            Di perjalanan ketika mencari bahan untuk makan, mereka berdua menemukan pesawat yang masih utuh  bekas tentara yang gugur akibat serangan.
+            Mereka berdua memanfaatkan pesawat itu untuk menghindari serangan yang terjadi sekarang, bisakah 2 orang yang selamat itu menghindari serangan alien berikutnya, untuk membuat lagi peradaban yang baru yang sudah hampir punah?
+        </p>
+        <button id="setting">OPTIONS</button>
+        <button id="about">ABOUTS</button>
+        <button id="play">PLAY</button>
+    </div>
+<script>
+let buttons = document.querySelectorAll('#all button');
+let paragraf = document.querySelector('#paragraf');
+
+function about() {
+    if(buttons[1].classList.toString()==false){
+        buttons[1].classList.add('active');
+        buttons[0].classList.toggle('none');
+        buttons[2].classList.toggle('none');
+        setTimeout(()=>{
+            paragraf.classList.toggle('none');
+        },1000)
+    }else{
+        buttons[1].classList.remove('active');
+        setTimeout(() => {
+            buttons[1].classList.add('reverse-active');
+            paragraf.classList.toggle('none');
+            setTimeout(() => {
+                buttons[1].classList.remove('reverse-active');
+                buttons[0].classList.toggle('none');
+                buttons[2].classList.toggle('none');
+            },1000);
+        }, 500);
+    }
+} 
+for (let i = 0; i < buttons.length; i++) {
+    buttons[i].addEventListener('click',()=>{
+        switch (i) {
+            case 0:
+                alert("FITUR BELUM TERSEDIA");
+                break;
+            case 1:
+                about();
+                break;
+            default:
+                document.location.href = 'menuLevel.html';
+                break;
+        }
+    })
+}
+</script>
+</body>
+</html>

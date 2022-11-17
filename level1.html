@@ -1,0 +1,447 @@
+<!doctype html>
+<html>
+ <head>
+  <title> Avoid game </title> 
+  <link rel="stylesheet" href="AVOID_GAME.CSS"> <!--link ke css-->
+  
+ </head> 
+ <body> 
+  <canvas id="world"></canvas> <!--canvas game-->
+  <div class="bg"></div> <!--div untuk background-->
+  <div id="status" class="ui"></div> <!--div untuk status, seperti point dan waktu-->
+  <div id="message"> <!--div untuk layout sebelum memulai-->
+   <p id="title"></p> 
+   <button id="startButton"><p>PLAY</p></button> <!--link untk memulai game-->
+   <br> 
+  </div> 
+  <button id="exit" onclick="menu()">BACK</button> <!--link untuk keluar dari permainan-->
+
+
+  <!--javascript nya-->
+  <script type="text/javascript">
+    //BACK TO MENU
+    function menu() {
+        document.location.href = 'menuLevel.html';
+    }
+
+    Spacedots = new function () {
+
+        //variable
+    var isMobile = (navigator.userAgent.toLowerCase().indexOf('android') != -1) ||
+        (navigator.userAgent.toLowerCase().indexOf('iphone') != -1);
+    var SCREEN_WIDTH = window.innerWidth; //var untuk lebar layar
+    var SCREEN_HEIGHT = window.innerHeight; //var untuk tinggi layar
+    var canvas; //var untuk canvas
+    var context; 
+    var status; //var untuk status seperti point dan time
+    var message; //var untuk tombol play
+    var title;
+    var startButton; //var untuk button start button
+    var meteor = []; //var untuk meteor
+    var boost = []; //var untuk point boost, ketika player mendapatkan ini, dia akan boost dari serangan meteor
+    var particles = []; //var untuk varticle ketika mati tekena serangan
+    var karakter; //var untuk karakter
+    var component; //var untuk komponent game
+
+    //var untuk menggerakan mouse
+    var mouseX = (window.innerWidth - SCREEN_WIDTH);
+    var mouseY = (window.innerHeight - SCREEN_HEIGHT);
+    var mouseIsDown = false;
+
+    var playing = false; //var untuk memulai game
+    var score = 0; //variable untuk score
+    var time = 0; //variable untuk waktu
+
+    var velocity = {
+        x: -1.5,
+        y: 1
+    }; //var untuk kecepatan
+    var difficulty = 1; //var untuk kesulitan
+
+    this.init = function () {
+
+        //untuk function canva, status, message, title dan startButton
+        canvas = document.getElementById('world');
+        status = document.getElementById('status');
+        message = document.getElementById('message');
+        exit = document.getElementById('exit');
+        title = document.getElementById('title');
+        startButton = document.getElementById('startButton');
+        karakter = document.getElementById('component');
+        
+
+        if (canvas && canvas.getContext) {
+            context = canvas.getContext('2d');
+
+            //function untuk menggerakan karakter menggunakan mouse 
+            document.addEventListener('mousemove', documentMouseMoveHandler, false);
+            document.addEventListener('mousedown', documentMouseDownHandler, false);
+            document.addEventListener('mouseup', documentMouseUpHandler, false);
+
+            //funtion untuk menggerakan karakter menggunakan touch(handphone)
+            canvas.addEventListener('touchstart', documentTouchStartHandler, false);
+            document.addEventListener('touchmove', documentTouchMoveHandler, false);
+            document.addEventListener('touchend', documentTouchEndHandler, false);
+            window.addEventListener('resize', windowResizeHandler, false);
+
+            //function supaya tombol mulai bisa di pencet
+            startButton.addEventListener('click', startButtonClickHandler, false);
+
+            karakter = new Player();
+
+            windowResizeHandler();
+
+            setInterval(loop, 1000 / 70);
+        }
+    };
+
+    function startButtonClickHandler(event) {
+        event.preventDefault();
+
+
+        if (playing == false) {
+            playing = true; //ketika game berjalan maka meteor, boost, score, kesulitan, dan player akan ikutan memulai
+
+            meteor = [];
+            boost = [];
+            score = 1;
+            difficulty = 1; //level kesulitan untuk game nya
+
+            karakter.trail = [];
+            karakter.position.x = mouseX;
+            karakter.position.y = mouseY;
+            karakter.boost = 0;
+        
+
+            message.style.display = 'none'; //ketika game dimulai, tombol play akan hilang
+            exit.style.display = 'none'; //ketika game dimulai, tombol exit akan hilang
+            status.style.display = 'block'; //dan ketika game dimulai, status diatas akan muncul
+
+            time = new Date().getTime();
+        }
+    }
+
+    //function ketika mati
+    function gameOver() {
+        playing = false;
+
+        message.style.display = 'block'; //tulisan di massage akan berubah ketika mati
+        exit.style.display = '';
+        title.innerHTML = `kamu gagal menghidupkan lagi peradaban (${Math.round(score)} points)`; //dan digantikan dengan tulisan ini
+        //dan score yang didapatkan tadi akan muncul di massage 
+    }
+
+    function documentMouseMoveHandler(event) {
+        mouseX = event.clientX - (window.innerWidth - SCREEN_WIDTH) * .5 - 10;
+        mouseY = event.clientY - (window.innerHeight - SCREEN_HEIGHT) * .5 - 10;
+    }
+    function documentMouseDownHandler(event) {
+        mouseIsDown = true;
+    }
+    function documentMouseUpHandler(event) {
+        mouseIsDown = false;
+    }
+    
+    function documentTouchStartHandler(event) {
+        if (event.touches.length == 1) {
+            event.preventDefault();
+
+            mouseX = event.touches[0].pageX - (window.innerWidth - SCREEN_WIDTH) * .5;
+            mouseY = event.touches[0].pageY - (window.innerHeight - SCREEN_HEIGHT) * .5;
+
+            mouseIsDown = true;
+        }
+    }
+    function documentTouchMoveHandler(event) {
+        if (event.touches.length == 1) {
+            event.preventDefault();
+
+            mouseX = event.touches[0].pageX - (window.innerWidth - SCREEN_WIDTH) * .5;
+            mouseY = event.touches[0].pageY - (window.innerHeight - SCREEN_HEIGHT) * .5;
+        }
+    }
+
+    function documentTouchEndHandler(event) {
+        mouseIsDown = false;
+    }
+
+    //function untuk lebar dan tinggi dicanva
+    function windowResizeHandler() {
+        SCREEN_WIDTH = window.innerWidth;
+        SCREEN_HEIGHT = window.innerHeight;
+
+        canvas.width = SCREEN_WIDTH;
+        canvas.height = SCREEN_HEIGHT;
+
+        var cvx = (window.innerWidth - SCREEN_WIDTH) * .5;
+        var cvy = (window.innerHeight - SCREEN_HEIGHT) * .5;
+
+        //POSISI canvas
+        canvas.style.position = 'absolute';
+        canvas.style.left = cvx + 'px';
+        canvas.style.top = cvy + 'px';
+
+        message.style.left = cvx +'px'; //letak massage ke kiri
+        message.style.top = cvy + 200 + 'px'; //tata letak massage ke atas
+    }
+
+    //function untuk memunclkan particle kecil ketika tertabrak 
+    function createParticles(position, spread, color)//function untuk membuat particle
+     {
+        var q = 10 + (Math.random() * 15); //var untuk mengatur particle
+
+        while (--q >= 0) {
+            var p = new Particle();
+            p.position.x = position.x + (Math.sin(q) * spread); //random particle ke x
+            p.position.y = position.y + (Math.cos(q) * spread); //random particle ke y
+            p.velocity = {
+                x: -4 + Math.random() * 8,
+                y: -4 + Math.random() * 8
+            }; //kecepatan particle
+            
+            particles.push(p);
+        }
+    }
+
+    function loop() {
+
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        var svelocity = {
+            x: velocity.x * difficulty,
+            y: velocity.y * difficulty
+        };
+
+        var i, j, ilen, jlen;
+
+        if (playing) {
+            difficulty += 0.0008;
+
+            pp = karakter.clonePosition();
+
+            karakter.position.x += (mouseX - karakter.position.x) * 0.13; //posisi karakter ke x
+            karakter.position.y += (mouseY - karakter.position.y) * 0.13; //posisi karakter ke y
+
+            score += 1 * difficulty; //semakin tinggi kesulitan, semakin cepat bertambahnya point discore
+            score += karakter.distanceTo(pp) * 2; //ketika karakter berjalan, maka score akan akan cepat nambahnya (dikalikan)
+            karakter.boost = Math.max(karakter.boost - 1, 0); //durasi dari boost 
+
+            //jika karakter bengambil bola bola boost
+            if (karakter.boost > 0 && (karakter.boost > 100 || karakter.boost % 3 != 0)) {
+                context.beginPath();
+                context.fillStyle = '#ffffff'; //warna DIDALAM lingkaran yang mengelilingi karakter jika mengambil boost
+                context.strokeStyle = '#000000'; //warna PINGGIRAN lingkaran 
+                context.arc(karakter.position.x, karakter.position.y, karakter.size * 2, 0, Math.PI * 2, true);
+                //ukuran boost i karakter
+                context.fill();
+                context.stroke();
+            }
+
+
+            //asap atau garisan yang di belakang karakter
+            karakter.trail.push(new Point(karakter.position.x, karakter.position.y));
+
+            context.beginPath();
+            context.strokeStyle = '#c7fc36'; //warna asap 
+            context.lineWidth = 2;//ukuran besar atau kecilnya asap
+
+            //posisi asap terhadap karakter
+            for (i = 0, ilen = karakter.trail.length; i < ilen; i++) {
+                p = karakter.trail[i];
+
+                context.lineTo(p.position.x, p.position.y);
+
+                p.position.x += svelocity.x;
+                p.position.y += svelocity.y;
+            }
+
+            context.stroke();
+            context.closePath();
+
+            if (karakter.trail.length > 20) {
+                karakter.trail.shift();
+            } //ukuran panjangnya asap
+
+            context.beginPath();
+            context.fillStyle = "green"; //warna karakter
+            context.arc(karakter.position.x, karakter.position.y, karakter.size / 2, 0, Math.PI * 2, true);
+            context.fill();
+        }
+
+        if (playing && (karakter.position.x < 0 || karakter.position.x > SCREEN_WIDTH || karakter.position.y < 0 || karakter.position.y > SCREEN_HEIGHT)) {
+            gameOver();
+        } //karakter akan mati jika keluar dari batas screen
+
+        for (i = 0; i < meteor.length; i++) {
+            p = meteor[i];
+
+            if (playing) {
+                if (karakter.boost > 0 && p.distanceTo(karakter.position) < ((karakter.size * 4) + p.size) * 0.5) {
+                    createParticles(p.position, 10); //
+                    meteor.splice(i, 1);
+                    i--;
+                    score += 10;
+                    continue; //player akan boost dari serangan jika mengambil boost 
+                } 
+                else if (p.distanceTo(karakter.position) < (karakter.size + p.size) * 0.5) {
+                    createParticles(karakter.position, 10);
+                    gameOver();
+                } //jika boost habis, player tidak akan kebal lagi
+            }
+
+
+            //js untuk meteornya
+            context.beginPath();
+            context.fillStyle = 'red'; //warna dari serangannya 
+            context.arc(p.position.x, p.position.y, p.size / 2, 0, Math.PI * 2, true); //untuk posisi random dari serangannya
+            context.fill();
+
+            p.position.x += svelocity.x * p.force;
+            p.position.y += svelocity.y * p.force;
+
+            if (p.position.x < 0 || p.position.y > SCREEN_HEIGHT) {
+                meteor.splice(i, 1);
+                i--;
+            } //meteornya muncul dari pinggir layar
+        }
+
+        for (i = 0; i < boost.length; i++) {
+            p = boost[i];
+
+            if (p.distanceTo(karakter.position) < (karakter.size + p.size) * 0.5 && playing) {
+                karakter.boost = 300; //
+
+                for (j = 0; j < meteor.length; j++) {
+                    e = meteor[j];
+
+                    if (e.distanceTo(p.position) < 100) {
+                        createParticles(e.position, 10);
+                        meteor.splice(j, 1);
+                        j--;
+                        score += 10;
+                    }
+                }
+            }
+
+            context.beginPath();
+            context.fillStyle = 'white'; //warna untuk point
+            context.fill();
+
+            p.position.x += svelocity.x * p.force;
+            p.position.y += svelocity.y * p.force;
+
+            if (p.position.x < 0 || p.position.y > SCREEN_HEIGHT || karakter.boost != 0) {
+                boost.splice(i, 1);
+                i--;
+            }
+        }
+
+        if (meteor.length < 35 * difficulty) {
+            meteor.push(positionNewOrganism(new Enemy()));
+        } //jumlah meteor keluar perdetik
+
+        if (boost.length < 1 && Math.random() > 0.997 && karakter.boost == 0) {
+            boost.push(positionNewOrganism(new Boost()));
+        }
+
+        for (i = 0; i < particles.length; i++) {
+            p = particles[i];
+
+            p.velocity.x += (svelocity.x - p.velocity.x) * 0.04;
+            p.velocity.y += (svelocity.y - p.velocity.y) * 0.04;
+
+            p.position.x += p.velocity.x;
+            p.position.y += p.velocity.y;
+
+            p.alpha -= 0.02;
+
+            context.fillStyle = 'red' + Math.max(p.alpha, 0) + ')';
+            context.fillRect(p.position.x, p.position.y, 1, 1);
+
+            if (p.alpha <= 0) {
+                particles.splice(i, 1);
+            }
+        }
+
+        //if untuk waktu dan score
+        if (playing) {
+            scoreText = 'poin: <span>' + Math.round(score) + '</span>';
+            scoreText += ' waktu: <span>' + Math.round(((new Date().getTime() - time) / 1000) * 100) / 100 + 's</span>';
+            status.innerHTML = scoreText;
+        }
+    }
+
+    function positionNewOrganism(p) {
+        if (Math.random() > 0.5) {
+            p.position.x = Math.random() * SCREEN_WIDTH;
+            p.position.y = -20;
+        } 
+        else {
+            p.position.x = SCREEN_WIDTH + 60;
+            p.position.y = (-SCREEN_HEIGHT * 0.2) + (Math.random() * SCREEN_HEIGHT * 1.2);
+        }
+        return p;
+    }
+};
+//function untuk point
+function Point(x, y) {
+    this.position = {
+        x: x,
+        y: y
+    };
+}
+Point.prototype.distanceTo = function (p) {
+    var dx = p.x - this.position.x;
+    var dy = p.y - this.position.y;
+    return Math.sqrt(dx * dx + dy * dy);
+};
+
+Point.prototype.clonePosition = function () {
+    return {
+        x: this.position.x,
+        y: this.position.y
+    };
+};
+
+//function buat karakter
+function Player() {
+    this.position = {x: 0, y: 0}; //posisi player yang mengikuti mouse atau tangan kita
+    this.trail = []; //karakternya di ikuti oleh asap
+    this.size = 20; //ukuran
+    this.boost = 0; //kecepatan
+}
+Player.prototype = new Point();
+
+//function buat serangan aliennya
+function Enemy() { 
+
+    this.position = {x: 0, y: 0}; //pisisi serangan
+    this.size = 7 + (Math.random() * 8 ); // ukuran serangan
+    this.force = 0.5 + (Math.random() * 0.4); // kecepatan serangan
+}
+Enemy.prototype = new Point();
+
+//function buat boost
+function Boost() {
+    this.position = {
+        x: 0,
+        y: 0
+    }; //posisi boost buat random
+    this.size = 10 + (Math.random() * 15); //ukuran boosternya
+    this.force = 1 + (Math.random() * 0.4);//kecepatan lewat
+}
+Boost.prototype = new Point();
+
+//function unruk particle
+function Particle() {
+    this.position = {x: 0, y: 0}; //posisi yg mengikuti serangannya ketika player tertabrak
+    this.force = 1 + (Math.random() * 0.4); //kecepatan keluar particlenya
+    this.color = '#000000'; //warna untuk particle nya
+}
+Particle.prototype = new Point();
+
+Spacedots.init();
+
+  </script> 
+ </body>
+</html>
